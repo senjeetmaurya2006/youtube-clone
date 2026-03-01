@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streming - Video Sharing Platform</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary: #3ea6ff;
+            --primary-dark: #065fd4;
+            --secondary: #eef4ff;
+            --accent-red: #ff4e45;
+            --accent-green: #00c851;
+            --accent-purple: #a855f7;
+            --accent-yellow: #ffbb33;
+            --accent-orange: #ff8800;
+            --white: #ffffff;
+            --black: #0f0f0f;
+            --text-main: #222222;
+            --text-light: #606060;
+            --border: #e0e0e0;
+            --bg-body: #f9f9f9;
+            --bg-nav: rgba(255, 255, 255, 0.95);
+            --bg-studio: #f4f6f8;
+            --card-gradient: linear-gradient(135deg, #ffffff, #fff176);
+            --card-border-hover: rgba(255, 235, 59, 0.5);
+            
+            --header-h: 64px;
+            --sidebar-w: 250px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode {
+            --primary-dark: #6ab5ff;
+            --secondary: #262626;
+            --white: #1f1f1f;
+            --black: #ffffff;
+            --text-main: #f1f1f1;
+            --text-light: #aaaaaa;
+            --border: #333333;
+            --bg-body: #0f0f0f;
+            --bg-nav: rgba(20, 20, 20, 0.95);
+            --bg-studio: #121212;
+            --card-gradient: linear-gradient(135deg, #1e1e1e, #4a3b00);
+            --card-border-hover: rgba(255, 215, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        h1, h2, h3, h4, h5, .logo-text, .bubble { font-family: 'Poppins', sans-serif; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* Navigation */
+        #navbar {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+            background: var(--bg-nav); backdrop-filter: blur(8px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 24px; z-index: 1000; border-bottom: 1px solid var(--border);
+        }
+
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 20px; }
+        .logo { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .logo-icon { font-size: 34px; color: url(#grad1); background: linear-gradient(45deg, var(--accent-red), var(--accent-orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-text { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+        .menu-btn { cursor: pointer; font-size: 28px; }
+
+        .nav-center { flex: 1; max-width: 600px; display: flex; margin: 0 40px; position: relative; }
+        #search-input {
+            flex: 1; height: 44px; border-radius: 50px 0 0 50px; border: 1px solid var(--border);
+            padding: 0 20px; background: var(--bg-body); color: var(--text-main); font-size: 16px;
+            transition: 0.2s; outline: none;
+        }
+        #search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(62, 166, 255, 0.15); }
+        .search-btn {
+            width: 64px; border-radius: 0 50px 50px 0; border: 1px solid var(--border);
+            border-left: none; background: var(--secondary); cursor: pointer;
+        }
+        .mobile-search-btn, .mobile-back { display: none; cursor: pointer; }
+
+        /* Notifications */
+        .notif-wrapper { position: relative; cursor: pointer; }
+        .notif-badge {
+            position: absolute; top: 0px; right: 0px; width: 10px; height: 10px;
+            background: var(--accent-red); border: 2px solid var(--white); border-radius: 50%; display: none;
+        }
+        .notif-dropdown {
+            position: absolute; top: 40px; right: -20px; width: 340px; max-height: 400px;
+            background: var(--white); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border);
+            overflow-y: auto; display: none; z-index: 2000; animation: fadeIn 0.2s; cursor: default;
+        }
+        .notif-header { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border); }
+        .notif-item { display: flex; gap: 12px; padding: 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .notif-item:hover { background: var(--secondary); }
+        .notif-item img { width: 64px; height: 36px; border-radius: 6px; object-fit: cover; }
+
+        /* Buttons & Avatars */
+        .sign-in-btn {
+            display: flex; align-items: center; gap: 6px; border: 1px solid var(--border);
+            background: transparent; color: var(--primary); padding: 8px 16px;
+            border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .sign-in-btn:hover { background: var(--secondary); border-color: transparent; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 1px solid var(--border); }
+
+        /* Sidebar */
+        #sidebar {
+            position: fixed; top: var(--header-h); left: 0; bottom: 0; width: var(--sidebar-w);
+            background: var(--bg-body); overflow-y: auto; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 900; padding: 12px;
+        }
+        .menu-item {
+            display: flex; align-items: center; gap: 20px; padding: 10px 14px; border-radius: 10px;
+            cursor: pointer; font-size: 14px; margin-bottom: 4px; transition: 0.2s;
+        }
+        .menu-item:hover { background: var(--secondary); }
+        .menu-item.active { background: var(--secondary); font-weight: 600; }
+        .subs-header { font-size: 15px; color: var(--text-light); padding: 16px 14px 8px; font-weight: 600; }
+        .subs-item { display: flex; align-items: center; gap: 12px; padding: 8px 14px; cursor: pointer; border-radius: 10px; }
+        .subs-item:hover { background: var(--secondary); }
+        .subs-item img { width: 28px; height: 28px; border-radius: 50%; }
+
+        /* Main Content */
+        #main-content {
+            margin-top: var(--header-h); margin-left: var(--sidebar-w); padding: 24px;
+            transition: margin-left 0.3s;
+        }
+        #main-content.full { margin-left: 0; }
+        #sidebar.closed { transform: translateX(-100%); }
+
+        /* Category Bubbles */
+        .categories-scroll {
+            display: flex; gap: 12px; overflow-x: auto; padding-bottom: 16px; margin-bottom: 16px;
+        }
+        .categories-scroll::-webkit-scrollbar { display: none; }
+        .bubble {
+            padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600;
+            color: var(--white); white-space: nowrap; cursor: pointer; flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s;
+        }
+        .bubble.all { background: var(--black); }
+        .bubble:not(.all) { color: #0f0f0f; }
+        .bubble:hover { transform: translateY(-2px); }
+        .bubble.active { transform: scale(1.05); border: 2px solid var(--white); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+
+        /* Gradients for Bubbles */
+        .g-music { background: linear-gradient(135deg, #FF9A9E, #FECFEF); }
+        .g-gaming { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        .g-code { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
+        .g-news { background: linear-gradient(135deg, #cfd9df, #e2ebf0); }
+        .g-sports { background: linear-gradient(135deg, #a6c0fe, #f68084); }
+        .g-live { background: linear-gradient(135deg, #fccb90, #d57eeb); }
+        .g-learning { background: linear-gradient(135deg, #e0c3fc, #8ec5fc); }
+        .g-java { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .g-python { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .g-vlogs { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+        /* Video Grid */
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 24px; }
+        .vid-card {
+            background: var(--card-gradient); padding: 10px; border-radius: 16px;
+            border: 1px solid transparent; cursor: pointer; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .vid-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); border-color: var(--card-border-hover); }
+        .thumb-box { position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: var(--border); }
+        .thumb-box img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .vid-card:hover .thumb-box img { transform: scale(1.05); }
+        .duration {
+            position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+        }
+        .vid-meta { display: flex; gap: 14px; margin-top: 12px; }
+        .vid-meta img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--white); box-shadow: var(--shadow-sm); }
+        .vid-title { font-size: 16px; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .vid-channel { font-size: 13px; color: var(--text-light); font-weight: 500; margin-top: 4px; }
+        .vid-stats { font-size: 13px; color: var(--text-light); }
+
+        /* Watch Overlay */
+        .overlay-screen {
+            position: fixed; top: var(--header-h); left: 0; right: 0; bottom: 0;
+            background: var(--bg-body); z-index: 1100; overflow-y: auto; display: none;
+        }
+        .watch-container { max-width: 1100px; margin: 0 auto; padding: 30px; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text-light); cursor: pointer; margin-bottom: 15px; }
+        .player-wrapper { width: 100%; aspect-ratio: 16/9; border-radius: 20px; background: black; box-shadow: 0 10px 40px rgba(0,0,0,0.25); overflow: hidden; }
+        .player-wrapper iframe { width: 100%; height: 100%; border: none; }
+        #watch-title { font-size: 22px; font-weight: 700; margin: 16px 0 10px; }
+        .actions-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .channel-actions { display: flex; align-items: center; gap: 12px; }
+        .channel-info .channel-name { font-weight: 600; font-size: 16px; }
+        .channel-info .sub-count { font-size: 13px; color: var(--text-light); }
+        #subscribe-btn {
+            background: var(--black); color: var(--bg-body); padding: 0 24px; height: 44px;
+            border-radius: 30px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.2s;
+        }
+        #subscribe-btn.subscribed { background: var(--secondary); color: var(--primary-dark); box-shadow: none; border: 1px solid var(--border); }
+        .action-buttons { display: flex; gap: 8px; }
+        .pill-btn {
+            display: flex; align-items: center; gap: 6px; padding: 0 16px; height: 44px;
+            border-radius: 22px; border: 1px solid var(--border); background: var(--secondary);
+            font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-main);
+        }
+        .pill-btn:hover { background: var(--border); }
+        .pill-btn.active { background: linear-gradient(45deg, var(--primary), var(--primary-dark)); color: white; border-color: transparent; }
+
+        .description-box { background: var(--secondary); padding: 20px; border-radius: 16px; margin-top: 24px; border: 1px solid var(--border); }
+        .desc-meta { font-weight: 600; margin-bottom: 8px; }
+        .desc-text { color: var(--text-light); white-space: pre-wrap; font-size: 14px; }
+
+        /* Comments */
+        .comments-section { margin-top: 30px; }
+        .comment-input-area { display: flex; gap: 16px; margin: 20px 0; }
+        .input-wrapper { flex: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        #comment-input {
+            width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 15px;
+            background: transparent; color: var(--text-main); outline: none; transition: 0.2s;
+        }
+        #comment-input:focus { border-bottom: 2px solid var(--primary); }
+        .comment-btn { background: linear-gradient(45deg, var(--primary), var(--primary-dark)); color: white; padding: 8px 24px; border-radius: 20px; border: none; font-weight: 600; cursor: pointer; }
+        .comment-item { display: flex; gap: 16px; margin-bottom: 20px; }
+        .comment-content .meta { font-size: 13px; font-weight: 600; margin-bottom: 4px; display: flex; gap: 8px;}
+        .comment-content .meta span { color: var(--text-light); font-weight: 400; }
+        .comment-text { font-size: 14px; line-height: 1.5; }
+
+        /* Studio */
+        .studio-layout { display: flex; height: 100%; background: var(--bg-studio); }
+        .studio-sidebar { width: 250px; border-right: 1px solid var(--border); padding: 20px; background: var(--white); }
+        .studio-main { flex: 1; padding: 40px; overflow-y: auto; }
+        .studio-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 30px; }
+        .stat-card { padding: 24px; border-radius: 16px; text-align: center; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .blue-grad { background: linear-gradient(135deg, #3ea6ff, #065fd4); }
+        .orange-grad { background: linear-gradient(135deg, #ff8800, #ff4e45); }
+        .green-grad { background: linear-gradient(135deg, #00c851, #007e33); }
+        .stat-card h3 { font-size: 16px; opacity: 0.9; font-weight: 500; }
+        .stat-card h2 { font-size: 36px; font-weight: 700; margin-top: 10px; }
+
+        .studio-table-container { background: var(--white); padding: 28px; border-radius: 16px; box-shadow: var(--shadow-sm); }
+        .studio-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; text-align: left; }
+        .studio-table th { color: var(--text-light); font-size: 12px; font-weight: 600; padding: 10px 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .studio-table td { background: var(--secondary); padding: 14px 15px; font-size: 14px; vertical-align: middle; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .studio-table tr td:first-child { border-left: 1px solid var(--border); border-radius: 8px 0 0 8px; }
+        .studio-table tr td:last-child { border-right: 1px solid var(--border); border-radius: 0 8px 8px 0; }
+        .studio-table tbody tr:hover td { background: var(--bg-studio); }
+        .tb-vid { display: flex; gap: 12px; align-items: center; }
+        .tb-vid img { width: 100px; height: 56px; border-radius: 8px; object-fit: cover; }
+        .action-ic { padding: 8px; border-radius: 50%; cursor: pointer; border: none; color: white; margin-right: 4px; }
+        .ic-green { background: var(--accent-green); } .ic-purple { background: var(--accent-purple); } .ic-red { background: var(--accent-red); }
+
+        /* Settings */
+        .settings-card { max-width: 600px; background: var(--white); padding: 30px; border-radius: 16px; box-shadow: var(--shadow-sm); }
+
+        /* Modals */
+        .modal-wrap { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+        .modal-box { background: var(--white); width: 100%; max-width: 400px; padding: 32px; border-radius: 20px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #upload-modal { max-width: 500px; }
+        .analytics-box { max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; color: var(--text-light); }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; font-size: 13px; color: var(--text-light); font-weight: 600; margin-bottom: 6px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); font-size: 14px; color: var(--text-main); transition: 0.2s; outline: none; font-family: inherit;}
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 3px rgba(62, 166, 255, 0.15); }
+
+        .primary-btn { background: linear-gradient(45deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .full-width { width: 100%; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.5px; }
+        .google-btn { width: 100%; margin-top: 12px; background: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; justify-content: center; align-items: center; gap: 10px; cursor: pointer; font-weight: 500; color: #333; }
+        .auth-toggle { text-align: center; margin-top: 20px; color: var(--primary); font-size: 14px; cursor: pointer; }
+        .auth-icon { font-size: 54px; color: var(--primary); display: block; text-align: center; margin-bottom: 10px;}
+        #auth-modal h2 { text-align: center; margin-bottom: 20px;}
+
+        /* Analytics */
+        .chart-container { background: var(--white); padding: 15px; border-radius: 16px; border: 1px solid var(--border); height: 280px; margin-bottom: 30px; }
+        .canvas-wrapper { position: relative; height: 100%; width: 100%; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            #sidebar { transform: translateX(-100%); width: 260px; box-shadow: 2px 0 20px rgba(0,0,0,0.1); }
+            #sidebar.mobile-open { transform: translateX(0); }
+            #main-content { margin-left: 0; padding: 16px; }
+            .nav-center { display: none; }
+            .mobile-search-btn { display: block; }
+            .nav-center.mobile-active { display: flex; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--white); margin: 0; padding: 0 16px; z-index: 5; align-items: center; }
+            .mobile-back { display: block; margin-right: 12px; }
+            .video-grid { grid-template-columns: 1fr; }
+            .studio-layout { flex-direction: column; }
+            .studio-sidebar { width: 100%; display: flex; border-right: none; border-bottom: 1px solid var(--border); overflow-x: auto; padding: 10px; }
+            .stat-cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav id="navbar">
+        <div class="nav-left">
+            <span class="material-symbols-rounded menu-btn" onclick="window.toggleSidebar()">menu</span>
+            <div class="logo" onclick="window.goHome()">
+                <span class="material-symbols-rounded logo-icon">play_circle</span>
+                <span class="logo-text">CornHub</span>
+            </div>
+        </div>
+        
+        <div class="nav-center" id="search-container">
+            <span class="material-symbols-rounded mobile-back" onclick="window.toggleMobileSearch()">arrow_back</span>
+            <input type="text" id="search-input" placeholder="Search" onkeyup="window.handleSearch(event)">
+            <button class="search-btn"><span class="material-symbols-rounded">search</span></button>
+        </div>
+        
+        <div class="nav-right">
+            <span class="material-symbols-rounded mobile-search-btn" onclick="window.toggleMobileSearch()">search</span>
+            <span class="material-symbols-rounded upload-btn" onclick="window.openUploadModal()" style="color: var(--accent-red); cursor: pointer;">video_call</span>
+            
+            <div class="notif-wrapper">
+                <span class="material-symbols-rounded notif-bell" onclick="window.toggleNotif()">notifications</span>
+                <div class="notif-badge" id="notif-badge"></div>
+                
+                <div class="notif-dropdown" id="notif-dropdown">
+                    <div class="notif-header">Recent Uploads</div>
+                    <div id="notif-list"></div>
+                </div>
+            </div>
+
+            <div id="auth-section">
+                <button class="sign-in-btn" onclick="window.openAuth()">
+                    <span class="material-symbols-rounded">account_circle</span> Sign in
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <aside id="sidebar">
+        <div class="menu-items">
+            <div class="menu-item active" id="menu-home" onclick="window.goHome()">
+                <span class="material-symbols-rounded" style="color: var(--accent-red)">home</span> Home
+            </div>
+            <div class="menu-item" id="menu-studio" onclick="window.openStudio()">
+                <span class="material-symbols-rounded" style="color: var(--accent-yellow)">bar_chart</span> Studio
+            </div>
+            <div class="menu-item" id="menu-history" onclick="window.openHistory()">
+                <span class="material-symbols-rounded" style="color: var(--accent-purple)">history</span> History
+            </div>
+            <div class="menu-item" id="menu-liked" onclick="window.openLikedVideos()">
+                <span class="material-symbols-rounded" style="color: var(--primary)">thumb_up</span> Liked Videos
+            </div>
+        </div>
+        <hr>
+        <div class="subscriptions-section">
+            <div class="subs-header">SUBSCRIPTIONS</div>
+            <div id="subs-list">
+                <div class="subs-placeholder">Sign in to see subscriptions</div>
+            </div>
+        </div>
+        <div id="logout-container" style="display: none; position: absolute; bottom: 20px; width: 100%;">
+            <div class="menu-item" onclick="window.handleLogout()">
+                <span class="material-symbols-rounded" style="color: var(--text-light)">logout</span> Sign Out
+            </div>
+        </div>
+    </aside>
+
+    <main id="main-content">
+        <h2 id="page-title" style="display: none; margin-bottom: 20px;"></h2>
+        <div id="categories-container" class="categories-scroll"></div>
+        <div id="video-grid" class="video-grid"></div>
+    </main>
+
+    <div id="watch-overlay" class="overlay-screen">
+        <div class="watch-container">
+            <div class="back-btn" onclick="window.closeWatch()">
+                <span class="material-symbols-rounded">arrow_back</span> Back to Home
+            </div>
+            <div class="player-wrapper">
+                <iframe id="video-player" allowfullscreen></iframe>
+            </div>
+            <h1 id="watch-title"></h1>
+            
+            <div class="actions-bar">
+                <div class="channel-actions">
+                    <img id="watch-avatar" src="" class="avatar">
+                    <div class="channel-info">
+                        <div id="watch-uploader" class="channel-name"></div>
+                        <div class="sub-count">0 subscribers</div>
+                    </div>
+                    <button id="subscribe-btn" onclick="window.toggleSubscribe()">Subscribe</button>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="pill-btn" id="like-btn" onclick="window.toggleLike()">
+                        <span class="material-symbols-rounded">thumb_up</span> <span id="like-count">0</span>
+                    </button>
+                    <button class="pill-btn" onclick="alert('Dislike registered')">
+                        <span class="material-symbols-rounded">thumb_down</span>
+                    </button>
+                    <button class="pill-btn" onclick="alert('Shared!')">
+                        <span class="material-symbols-rounded">share</span> Share
+                    </button>
+                </div>
+            </div>
+            
+            <div class="description-box">
+                <div id="watch-meta" class="desc-meta"></div>
+                <div id="watch-desc" class="desc-text"></div>
+            </div>
+
+            <div class="comments-section">
+                <h3 id="comment-count">0 Comments</h3>
+                <div class="comment-input-area">
+                    <img id="current-user-avatar" src="https://ui-avatars.com/api/?name=User&background=random" class="avatar">
+                    <div class="input-wrapper">
+                        <input type="text" id="comment-input" placeholder="Add a comment...">
+                        <button class="comment-btn" onclick="window.postComment()">Comment</button>
+                    </div>
+                </div>
+                <div id="comments-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="studio-overlay" class="overlay-screen">
+        <div class="studio-layout">
+            <aside class="studio-sidebar">
+                <div class="menu-item active" id="tab-dashboard" onclick="window.switchStudioTab('dashboard')">
+                    <span class="material-symbols-rounded">dashboard</span> Dashboard
+                </div>
+                <div class="menu-item" id="tab-settings" onclick="window.switchStudioTab('settings')">
+                    <span class="material-symbols-rounded">settings</span> Settings
+                </div>
+                <div class="menu-item" onclick="window.closeStudio()">
+                    <span class="material-symbols-rounded">arrow_back</span> Exit Studio
+                </div>
+            </aside>
+            <main class="studio-main">
+                <div id="view-dashboard">
+                    <div class="studio-header-flex">
+                        <h2>Channel Dashboard</h2>
+                        <button class="primary-btn" onclick="window.openChannelAnalytics()">View Channel Analytics</button>
+                    </div>
+                    
+                    <div class="stat-cards">
+                        <div class="stat-card blue-grad">
+                            <h3>Total Videos</h3>
+                            <h2 id="stat-videos">0</h2>
+                        </div>
+                        <div class="stat-card orange-grad">
+                            <h3>Total Views</h3>
+                            <h2 id="stat-views">0</h2>
+                        </div>
+                        <div class="stat-card green-grad">
+                            <h3>Subscribers</h3>
+                            <h2>0</h2>
+                        </div>
+                    </div>
+
+                    <div class="studio-table-container">
+                        <table class="studio-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50%">Video</th>
+                                    <th>Date</th>
+                                    <th>Views</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studio-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="view-settings" style="display: none;">
+                    <div class="settings-card">
+                        <h2>Profile Settings</h2>
+                        <div class="form-group">
+                            <label>Display Name</label>
+                            <input type="text" id="set-name" placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label>Profile Picture URL</label>
+                            <input type="text" id="set-photo" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label>Theme Preference</label>
+                            <select id="set-theme" onchange="window.applyTheme(this.value)">
+                                <option value="light">Light Mode</option>
+                                <option value="dark">Dark Mode</option>
+                            </select>
+                        </div>
+                        <button class="primary-btn full-width" onclick="window.handleProfileUpdate()">Save Changes</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="modal-backdrop" class="modal-wrap" style="display: none;" onclick="window.closeModals(event)">
+        
+        <div id="auth-modal" class="modal-box">
+            <span class="material-symbols-rounded close-modal" onclick="window.closeModals()">close</span>
+            <span class="material-symbols-rounded auth-icon">account_circle</span>
+            <h2 id="auth-title">Sign In</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="auth-email">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="auth-password">
+            </div>
+            <button class="primary-btn full-width" id="auth-submit" onclick="window.performAuth()">Sign In</button>
+            <button class="google-btn" onclick="window.handleGoogleLogin()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Sign in with Google
+            </button>
+            <div class="auth-toggle" onclick="window.toggleAuthMode()" id="auth-toggle">Create an account</div>
+        </div>
+
+        <div id="upload-modal" class="modal-box">
+            <span class="material-symbols-rounded close-modal" onclick="window.closeModals()">close</span>
+            <h2 id="upload-title">Upload Video</h2>
+            <input type="hidden" id="up-id">
+            <div class="form-group">
+                <label>Title *</label>
+                <input type="text" id="up-title" placeholder="Video Title">
+            </div>
+            <div class="form-group">
+                <label>Thumbnail URL</label>
+                <input type="text" id="up-thumb" placeholder="https://...">
+            </div>
+            <div class="form-group">
+                <label>Video URL (YouTube/Drive) *</label>
+                <input type="text" id="up-url" placeholder="Paste link here...">
+            </div>
+            <div class="form-group">
+                <label>Duration</label>
+                <input type="text" id="up-duration" placeholder="MM:SS">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="up-desc" rows="3"></textarea>
+            </div>
+            <button class="primary-btn full-width uppercase" onclick="window.submitVideoForm()">Save Video</button>
+        </div>
+
+        <div id="analytics-modal" class="modal-box analytics-box">
+            <div class="modal-header">
+                <h2 id="analytics-title">Video Analytics</h2>
+                <span class="material-symbols-rounded close-modal" onclick="window.closeModals()">close</span>
+            </div>
+            <h4 id="analytics-subtitle"></h4>
+            
+            <div class="chart-container">
+                <h5>Realtime (Last 24 Hours)</h5>
+                <div class="canvas-wrapper"><canvas id="realtimeChart"></canvas></div>
+            </div>
+            <div class="chart-container">
+                <h5>Performance (Total Views)</h5>
+                <div class="canvas-wrapper"><canvas id="perfChart"></canvas></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getDatabase, ref, set, push, onValue, update, remove, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+
+        // ==========================================
+        // FIREBASE CONFIGURATION (REPLACE WITH YOURS)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOCsSFzvNAmcR-yFsVqG_Ja6JhyEqpqsw",
+            authDomain: "study-4baf9.firebaseapp.com",
+            databaseURL: "https://study-4baf9-default-rtdb.firebaseio.com/",
+            projectId: "study-4baf9",
+            storageBucket: "study-4baf9.firebasestorage.app",
+            messagingSenderId: "346908454601",
+            appId: "1:346908454601:web:2f11946f82ac71773ba718"
+        };
+        
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // ==========================================
+        // GLOBAL STATE
+        // ==========================================
+        let user = null;
+        let allVideos = {};
+        let currentVidId = null;
+        let currentUploader = null;
+        let isLogin = true;
+        let charts = {};
+        let currentCategory = 'All';
+
+        const categories = [
+            { name: 'All', class: 'all' },
+            { name: 'Music', class: 'g-music' },
+            { name: 'Gaming', class: 'g-gaming' },
+            { name: 'Code', class: 'g-code' },
+            { name: 'News', class: 'g-news' },
+            { name: 'Sports', class: 'g-sports' },
+            { name: 'Live', class: 'g-live' },
+            { name: 'Learning', class: 'g-learning' },
+            { name: 'Java', class: 'g-java' },
+            { name: 'Python', class: 'g-python' },
+            { name: 'Vlogs', class: 'g-vlogs' }
+        ];
+
+        // ==========================================
+        // INITIALIZATION & THEME
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('set-theme').value = 'dark';
+            }
+            renderCategories();
+        });
+
+        window.applyTheme = (val) => {
+            if(val === 'dark') {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        };
+
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
+        const formatViews = (n) => {
+            if(!n) return 0;
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return n;
+        };
+
+        const timeAgo = (timestamp) => {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return "Just now";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} mins ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hours ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} days ago`;
+        };
+
+        const convertToEmbed = (url) => {
+            const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const ytMatch = url.match(ytRegex);
+            if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+            
+            const driveRegex = /\/d\/(.*?)\//;
+            const driveMatch = url.match(driveRegex);
+            if (driveMatch) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+            
+            return url;
+        };
+
+        const getAvatar = (name) => {
+            return name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random` 
+                        : 'https://ui-avatars.com/api/?name=U&background=random';
+        };
+
+        // ==========================================
+        // AUTHENTICATION LOGIC
+        // ==========================================
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            const authSection = document.getElementById('auth-section');
+            const logoutContainer = document.getElementById('logout-container');
+            const subsPlaceholder = document.querySelector('.subs-placeholder');
+            
+            if (user) {
+                const dName = user.displayName || user.email.split('@')[0];
+                document.getElementById('current-user-avatar').src = user.photoURL || getAvatar(dName);
+                authSection.innerHTML = `<img src="${user.photoURL || getAvatar(dName)}" class="avatar" onclick="window.openStudio()">`;
+                logoutContainer.style.display = 'block';
+                subsPlaceholder.style.display = 'none';
+                
+                // Studio inputs prefill
+                document.getElementById('set-name').value = dName;
+                document.getElementById('set-photo').value = user.photoURL || '';
+                
+                loadSidebarSubscriptions();
+            } else {
+                authSection.innerHTML = `<button class="sign-in-btn" onclick="window.openAuth()"><span class="material-symbols-rounded">account_circle</span> Sign in</button>`;
+                document.getElementById('current-user-avatar').src = getAvatar('User');
+                logoutContainer.style.display = 'none';
+                subsPlaceholder.style.display = 'block';
+                subsPlaceholder.innerText = "Sign in to see subscriptions";
+                document.getElementById('subs-list').innerHTML = '';
+                document.getElementById('subs-list').appendChild(subsPlaceholder);
+                window.closeStudio();
+            }
+        });
+
+        window.openAuth = () => { document.getElementById('modal-backdrop').style.display = 'flex'; document.getElementById('auth-modal').style.display = 'block'; }
+        window.toggleAuthMode = () => {
+            isLogin = !isLogin;
+            document.getElementById('auth-title').innerText = isLogin ? 'Sign In' : 'Register';
+            document.getElementById('auth-submit').innerText = isLogin ? 'Sign In' : 'Register';
+            document.getElementById('auth-toggle').innerText = isLogin ? 'Create an account' : 'Sign In';
+        };
+
+        window.performAuth = async () => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            try {
+                if(isLogin) await signInWithEmailAndPassword(auth, email, pass);
+                else await createUserWithEmailAndPassword(auth, email, pass);
+                window.closeModals();
+            } catch (e) { alert(e.message); }
+        };
+
+        window.handleGoogleLogin = async () => {
+            const provider = new GoogleAuthProvider();
+            try { await signInWithPopup(auth, provider); window.closeModals(); } 
+            catch(e) { alert(e.message); }
+        };
+
+        window.handleLogout = () => { if(confirm("Logout?")) signOut(auth); };
+
+        window.handleProfileUpdate = async () => {
+            if(!user) return;
+            try {
+                await updateProfile(user, {
+                    displayName: document.getElementById('set-name').value,
+                    photoURL: document.getElementById('set-photo').value
+                });
+                alert("Profile updated!");
+                location.reload();
+            } catch(e) { alert(e.message); }
+        }
+
+        // ==========================================
+        // UI TOGGLES
+        // ==========================================
+        window.toggleSidebar = () => {
+            const sb = document.getElementById('sidebar');
+            if(window.innerWidth > 768) {
+                sb.classList.toggle('closed');
+                document.getElementById('main-content').classList.toggle('full');
+            } else {
+                sb.classList.toggle('mobile-open');
+            }
+        };
+
+        window.toggleMobileSearch = () => {
+            document.getElementById('search-container').classList.toggle('mobile-active');
+        };
+
+        window.closeModals = (e) => {
+            if(e && e.target.id !== 'modal-backdrop') return;
+            document.getElementById('modal-backdrop').style.display = 'none';
+            document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none');
+        };
+
+        window.toggleNotif = () => {
+            const nd = document.getElementById('notif-dropdown');
+            nd.style.display = nd.style.display === 'block' ? 'none' : 'block';
+            document.getElementById('notif-badge').style.display = 'none';
+        };
+
+        window.setActiveMenu = (id) => {
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mobile-open');
+        };
+
+        // ==========================================
+        // DATA FETCHING & RENDERING (HOME)
+        // ==========================================
+        onValue(ref(db, 'videos'), (snapshot) => {
+            allVideos = snapshot.val() || {};
+            if(currentCategory === 'All' && !document.getElementById('watch-overlay').style.display.includes('block') && !document.getElementById('studio-overlay').style.display.includes('block')) {
+                renderGrid(allVideos);
+            }
+            updateNotifications();
+        });
+
+        const renderCategories = () => {
+            const cCont = document.getElementById('categories-container');
+            cCont.innerHTML = categories.map(c => 
+                `<div class="bubble ${c.class} ${c.name === 'All' ? 'active' : ''}" onclick="window.filterCategory('${c.name}')">${c.name}</div>`
+            ).join('');
+        };
+
+        window.filterCategory = (cat) => {
+            currentCategory = cat;
+            document.querySelectorAll('.bubble').forEach(b => {
+                b.classList.remove('active');
+                if(b.innerText === cat) b.classList.add('active');
+            });
+            
+            window.setActiveMenu('menu-home');
+            document.getElementById('page-title').style.display = 'none';
+            
+            if(cat === 'All') renderGrid(allVideos);
+            else {
+                const filtered = Object.entries(allVideos).reduce((acc, [id, v]) => {
+                    if(v.title.toLowerCase().includes(cat.toLowerCase()) || (v.description && v.description.toLowerCase().includes(cat.toLowerCase()))) acc[id] = v;
+                    return acc;
+                }, {});
+                renderGrid(filtered);
+            }
+        };
+
+        window.handleSearch = (e) => {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+            currentCategory = 'Search';
+            
+            const filtered = Object.entries(allVideos).reduce((acc, [id, v]) => {
+                if(v.title.toLowerCase().includes(q)) acc[id] = v;
+                return acc;
+            }, {});
+            renderGrid(filtered);
+        };
+
+        const renderGrid = (videosObj, isList = false) => {
+            const grid = document.getElementById('video-grid');
+            grid.innerHTML = '';
+            
+            const vidsArray = Object.entries(videosObj);
+            if(vidsArray.length === 0) {
+                grid.innerHTML = `<p style="color: var(--text-light)">No videos found.</p>`;
+                return;
+            }
+
+            // Sort newest first
+            vidsArray.sort((a,b) => b[1].timestamp - a[1].timestamp).forEach(([id, v]) => {
+                const uploaderName = v.uploader || 'Unknown';
+                grid.innerHTML += `
+                    <div class="vid-card" onclick="window.openWatch('${id}')">
+                        <div class="thumb-box">
+                            <img src="${v.thumbnail}" onerror="this.src='https://via.placeholder.com/300x168'">
+                            <div class="duration">${v.duration || '0:00'}</div>
+                        </div>
+                        <div class="vid-meta">
+                            <img src="${getAvatar(uploaderName)}">
+                            <div>
+                                <div class="vid-title">${v.title}</div>
+                                <div class="vid-channel">${uploaderName}</div>
+                                <div class="vid-stats">${formatViews(v.views)} views • ${timeAgo(v.timestamp)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        window.goHome = () => {
+            window.setActiveMenu('menu-home');
+            document.getElementById('watch-overlay').style.display = 'none';
+            document.getElementById('studio-overlay').style.display = 'none';
+            document.getElementById('page-title').style.display = 'none';
+            document.getElementById('categories-container').style.display = 'flex';
+            document.getElementById('video-player').src = '';
+            filterCategory('All');
+        };
+
+        const updateNotifications = () => {
+            const vids = Object.entries(allVideos).sort((a,b) => b[1].timestamp - a[1].timestamp).slice(0,5);
+            if(vids.length > 0) document.getElementById('notif-badge').style.display = 'block';
+            
+            document.getElementById('notif-list').innerHTML = vids.map(([id, v]) => `
+                <div class="notif-item" onclick="window.openWatch('${id}'); window.toggleNotif();">
+                    <img src="${v.thumbnail}">
+                    <div>
+                        <div style="font-size:14px; font-weight:600; color:var(--text-main)">${v.title}</div>
+                        <div style="font-size:12px; color:var(--text-light)">${v.uploader}</div>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // ==========================================
+        // WATCH PAGE & INTERACTIONS
+        // ==========================================
+        window.openWatch = async (id) => {
+            if(!allVideos[id]) return;
+            currentVidId = id;
+            const v = allVideos[id];
+            currentUploader = v.uploader;
+            
+            document.getElementById('watch-overlay').style.display = 'block';
+            document.getElementById('video-player').src = convertToEmbed(v.videoUrl);
+            document.getElementById('watch-title').innerText = v.title;
+            document.getElementById('watch-uploader').innerText = v.uploader || 'Unknown';
+            document.getElementById('watch-avatar').src = getAvatar(v.uploader);
+            document.getElementById('watch-meta').innerText = `${formatViews(v.views)} views • ${new Date(v.timestamp).toLocaleDateString()}`;
+            document.getElementById('watch-desc').innerText = v.description || '';
+            
+            // Add view & history
+            incrementView(id);
+            if(user) {
+                push(ref(db, `users/${user.uid}/history`), { videoId: id, timestamp: Date.now() });
+            }
+            
+            updateLikeButton();
+            checkSubscriptionStatus();
+            loadComments();
+        };
+
+        window.closeWatch = () => {
+            document.getElementById('watch-overlay').style.display = 'none';
+            document.getElementById('video-player').src = '';
+        };
+
+        const incrementView = (id) => {
+            runTransaction(ref(db, `videos/${id}/views`), (v) => (v || 0) + 1);
+            push(ref(db, `analytics/${id}/views`), { t: Date.now() });
+        };
+
+        // Like System
+        window.toggleLike = () => {
+            if(!user) return window.openAuth();
+            const likeRef = ref(db, `likes/${currentVidId}/${user.uid}`);
+            get(likeRef).then(snap => {
+                if(snap.exists()) remove(likeRef);
+                else set(likeRef, true);
+                setTimeout(updateLikeButton, 200); // Wait for write
+            });
+        };
+
+        const updateLikeButton = () => {
+            if(!currentVidId) return;
+            onValue(ref(db, `likes/${currentVidId}`), (snap) => {
+                const likes = snap.val() || {};
+                const count = Object.keys(likes).length;
+                document.getElementById('like-count').innerText = count;
+                
+                const btn = document.getElementById('like-btn');
+                if(user && likes[user.uid]) {
+                    btn.classList.add('active');
+                    btn.innerHTML = `<span class="material-symbols-rounded">thumb_up</span> ${count}`;
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = `<span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 0">thumb_up</span> ${count}`;
+                }
+            }, { onlyOnce: true });
+        };
+
+        // Subscribe System
+        window.toggleSubscribe = () => {
+            if(!user) return window.openAuth();
+            if(user.displayName === currentUploader || (!user.displayName && user.email.startsWith(currentUploader))) {
+                return alert("Cannot subscribe to yourself");
+            }
+            const subRef = ref(db, `users/${user.uid}/subscriptions/${currentUploader}`);
+            get(subRef).then(snap => {
+                if(snap.exists()) remove(subRef);
+                else set(subRef, true);
+                setTimeout(checkSubscriptionStatus, 200);
+            });
+        };
+
+        const checkSubscriptionStatus = () => {
+            const btn = document.getElementById('subscribe-btn');
+            if(!user) {
+                btn.innerText = "Subscribe";
+                btn.classList.remove('subscribed');
+                return;
+            }
+            get(ref(db, `users/${user.uid}/subscriptions/${currentUploader}`)).then(snap => {
+                if(snap.exists()) {
+                    btn.innerText = "Subscribed";
+                    btn.classList.add('subscribed');
+                } else {
+                    btn.innerText = "Subscribe";
+                    btn.classList.remove('subscribed');
+                }
+            });
+        };
+
+        // Comments
+        window.postComment = () => {
+            if(!user) return window.openAuth();
+            const input = document.getElementById('comment-input');
+            if(!input.value.trim()) return;
+            
+            push(ref(db, `comments/${currentVidId}`), {
+                text: input.value,
+                user: user.displayName || user.email.split('@')[0],
+                uid: user.uid,
+                time: Date.now()
+            });
+            input.value = '';
+        };
+
+        const loadComments = () => {
+            onValue(ref(db, `comments/${currentVidId}`), (snap) => {
+                const list = document.getElementById('comments-list');
+                list.innerHTML = '';
+                const comments = snap.val() || {};
+                const arr = Object.values(comments).sort((a,b) => b.time - a.time);
+                
+                document.getElementById('comment-count').innerText = `${arr.length} Comments`;
+                if(arr.length === 0) {
+                    list.innerHTML = `<p style="color:var(--text-light); font-style:italic;">No comments yet.</p>`;
+                    return;
+                }
+                
+                arr.forEach(c => {
+                    list.innerHTML += `
+                        <div class="comment-item">
+                            <img src="${getAvatar(c.user)}" class="avatar">
+                            <div class="comment-content">
+                                <div class="meta">@${c.user} <span>${timeAgo(c.time)}</span></div>
+                                <div class="comment-text">${c.text}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        };
+
+        // ==========================================
+        // HISTORY & LIKED PAGES
+        // ==========================================
+        window.openHistory = async () => {
+            if(!user) return window.openAuth();
+            window.setActiveMenu('menu-history');
+            document.getElementById('categories-container').style.display = 'none';
+            
+            const pt = document.getElementById('page-title');
+            pt.style.display = 'block'; pt.innerText = 'Watch History';
+            
+            get(ref(db, `users/${user.uid}/history`)).then(snap => {
+                const hist = snap.val() || {};
+                const histVideos = {};
+                Object.values(hist).sort((a,b) => b.timestamp - a.timestamp).forEach(h => {
+                    if(allVideos[h.videoId]) histVideos[h.videoId] = allVideos[h.videoId];
+                });
+                renderGrid(histVideos);
+            });
+        };
+
+        window.openLikedVideos = async () => {
+            if(!user) return window.openAuth();
+            window.setActiveMenu('menu-liked');
+            document.getElementById('categories-container').style.display = 'none';
+            
+            const pt = document.getElementById('page-title');
+            pt.style.display = 'block'; pt.innerText = 'Liked Videos';
+            
+            get(ref(db, 'likes')).then(snap => {
+                const likes = snap.val() || {};
+                const likedVids = {};
+                Object.keys(likes).forEach(vidId => {
+                    if(likes[vidId][user.uid] && allVideos[vidId]) {
+                        likedVids[vidId] = allVideos[vidId];
+                    }
+                });
+                renderGrid(likedVids);
+            });
+        };
+
+        const loadSidebarSubscriptions = () => {
+            if(!user) return;
+            onValue(ref(db, `users/${user.uid}/subscriptions`), (snap) => {
+                const subs = snap.val() || {};
+                const list = document.getElementById('subs-list');
+                list.innerHTML = '';
+                const subNames = Object.keys(subs);
+                if(subNames.length === 0) {
+                    list.innerHTML = `<div class="subs-placeholder">No subscriptions yet.</div>`;
+                    return;
+                }
+                subNames.forEach(name => {
+                    list.innerHTML += `
+                        <div class="subs-item">
+                            <img src="${getAvatar(name)}">
+                            <span style="font-size:14px; color:var(--text-main);">${name}</span>
+                        </div>
+                    `;
+                });
+            });
+        };
+
+
+        // ==========================================
+        // STUDIO & UPLOAD
+        // ==========================================
+        window.openStudio = () => {
+            if(!user) return window.openAuth();
+            window.setActiveMenu('menu-studio');
+            document.getElementById('studio-overlay').style.display = 'block';
+            renderStudioTable();
+        };
+
+        window.closeStudio = () => {
+            document.getElementById('studio-overlay').style.display = 'none';
+            window.goHome();
+        };
+
+        window.switchStudioTab = (tab) => {
+            document.getElementById('tab-dashboard').classList.remove('active');
+            document.getElementById('tab-settings').classList.remove('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            document.getElementById('view-dashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+            document.getElementById('view-settings').style.display = tab === 'settings' ? 'block' : 'none';
+        };
+
+        window.openUploadModal = () => {
+            if(!user) return window.openAuth();
+            document.getElementById('up-id').value = '';
+            document.getElementById('up-title').value = '';
+            document.getElementById('up-thumb').value = '';
+            document.getElementById('up-url').value = '';
+            document.getElementById('up-duration').value = '';
+            document.getElementById('up-desc').value = '';
+            document.getElementById('upload-title').innerText = 'Upload Video';
+            
+            document.getElementById('modal-backdrop').style.display = 'flex';
+            document.getElementById('upload-modal').style.display = 'block';
+        };
+
+        window.submitVideoForm = () => {
+            const id = document.getElementById('up-id').value;
+            const title = document.getElementById('up-title').value;
+            const videoUrl = document.getElementById('up-url').value;
+            if(!title || !videoUrl) return alert("Title and Video URL required.");
+            
+            const data = {
+                title, videoUrl,
+                thumbnail: document.getElementById('up-thumb').value || 'https://via.placeholder.com/300x168',
+                duration: document.getElementById('up-duration').value,
+                description: document.getElementById('up-desc').value,
+                uploader: user.displayName || user.email.split('@')[0],
+                uid: user.uid
+            };
+
+            if(id) {
+                update(ref(db, `videos/${id}`), data).then(() => { window.closeModals(); renderStudioTable(); });
+            } else {
+                data.views = 0;
+                data.timestamp = Date.now();
+                push(ref(db, 'videos'), data).then(() => { window.closeModals(); renderStudioTable(); });
+            }
+        };
+
+        window.openEdit = (id) => {
+            const v = allVideos[id];
+            document.getElementById('up-id').value = id;
+            document.getElementById('up-title').value = v.title;
+            document.getElementById('up-thumb').value = v.thumbnail;
+            document.getElementById('up-url').value = v.videoUrl;
+            document.getElementById('up-duration').value = v.duration;
+            document.getElementById('up-desc').value = v.description;
+            document.getElementById('upload-title').innerText = 'Edit Video';
+            
+            document.getElementById('modal-backdrop').style.display = 'flex';
+            document.getElementById('upload-modal').style.display = 'block';
+        };
+
+        window.deleteVideo = (id) => {
+            if(confirm("Delete video?")) {
+                remove(ref(db, `videos/${id}`)).then(renderStudioTable);
+            }
+        };
+
+        const renderStudioTable = () => {
+            const tb = document.getElementById('studio-table-body');
+            tb.innerHTML = '';
+            let totalViews = 0;
+            let totalVids = 0;
+            
+            Object.entries(allVideos).forEach(([id, v]) => {
+                if(v.uid === user.uid) {
+                    totalVids++;
+                    totalViews += (v.views || 0);
+                    tb.innerHTML += `
+                        <tr>
+                            <td>
+                                <div class="tb-vid">
+                                    <img src="${v.thumbnail}">
+                                    <div>
+                                        <div style="font-weight:600; color:var(--text-main);">${v.title}</div>
+                                        <div style="font-size:12px; color:var(--text-light);">${v.duration || '0:00'}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${new Date(v.timestamp).toLocaleDateString()}</td>
+                            <td>${formatViews(v.views)}</td>
+                            <td>
+                                <button class="action-ic ic-green material-symbols-rounded" onclick="window.openAnalytics('${id}')">analytics</button>
+                                <button class="action-ic ic-purple material-symbols-rounded" onclick="window.openEdit('${id}')">edit</button>
+                                <button class="action-ic ic-red material-symbols-rounded" onclick="window.deleteVideo('${id}')">delete</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            if(totalVids===0) tb.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-light);">No videos uploaded yet.</td></tr>`;
+            
+            document.getElementById('stat-videos').innerText = totalVids;
+            document.getElementById('stat-views').innerText = formatViews(totalViews);
+        };
+
+
+        // ==========================================
+        // ANALYTICS SYSTEM (Chart.js)
+        // ==========================================
+        window.openAnalytics = async (id) => {
+            document.getElementById('analytics-title').innerText = 'Video Analytics';
+            document.getElementById('analytics-subtitle').innerText = allVideos[id].title;
+            document.getElementById('modal-backdrop').style.display = 'flex';
+            document.getElementById('analytics-modal').style.display = 'block';
+            
+            const snap = await get(ref(db, `analytics/${id}/views`));
+            renderCharts(snap.val() || {});
+        };
+
+        window.openChannelAnalytics = async () => {
+            document.getElementById('analytics-title').innerText = 'Channel Analytics';
+            document.getElementById('analytics-subtitle').innerText = 'Overall Performance (All Videos)';
+            document.getElementById('modal-backdrop').style.display = 'flex';
+            document.getElementById('analytics-modal').style.display = 'block';
+            
+            const snap = await get(ref(db, `analytics`));
+            const allViews = {};
+            const data = snap.val() || {};
+            
+            // Aggregate all user videos
+            Object.keys(allVideos).forEach(vid => {
+                if(allVideos[vid].uid === user.uid && data[vid] && data[vid].views) {
+                    Object.assign(allViews, data[vid].views);
+                }
+            });
+            renderCharts(allViews);
+        };
+
+        const renderCharts = (viewsData) => {
+            if(charts.realtime) charts.realtime.destroy();
+            if(charts.perf) charts.perf.destroy();
+            
+            const timestamps = Object.values(viewsData).map(v => v.t);
+            const now = Date.now();
+            const last24h = new Array(24).fill(0);
+            const labels24h = [];
+            
+            for(let i=23; i>=0; i--) {
+                const d = new Date(now - i*3600000);
+                labels24h.push(d.toLocaleString('en-US', {hour:'numeric', hour12:true}));
+            }
+
+            // Daily Performance map
+            const dailyMap = {};
+            
+            timestamps.forEach(t => {
+                // Hourly
+                const diffHours = Math.floor((now - t)/3600000);
+                if(diffHours < 24) last24h[23 - diffHours]++;
+                
+                // Daily
+                const dStr = new Date(t).toLocaleDateString();
+                dailyMap[dStr] = (dailyMap[dStr] || 0) + 1;
+            });
+
+            const dates = Object.keys(dailyMap).sort((a,b) => new Date(a) - new Date(b));
+            let cum = 0;
+            const perfData = dates.map(d => { cum += dailyMap[d]; return cum; });
+            
+            if(dates.length === 0) { dates.push("Today"); perfData.push(0); }
+
+            // Render Realtime
+            const ctxRt = document.getElementById('realtimeChart').getContext('2d');
+            charts.realtime = new Chart(ctxRt, {
+                type: 'bar',
+                data: { labels: labels24h, datasets: [{ data: last24h, backgroundColor: '#00c851', borderRadius: 4, barPercentage: 0.6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false } } }
+            });
+
+            // Render Performance
+            const ctxPf = document.getElementById('perfChart').getContext('2d');
+            charts.perf = new Chart(ctxPf, {
+                type: 'line',
+                data: { labels: dates, datasets: [{ data: perfData, borderColor: '#065fd4', backgroundColor: 'rgba(6, 95, 212, 0.1)', fill: true, tension: 0.4, pointRadius: 3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } }
+            });
+        };
+    </script>
+</body>
+</html>
