@@ -280,7 +280,7 @@
         .form-group { margin-bottom: 18px; text-align: left; }
         .form-group label { display: block; font-size: 13px; color: var(--text-light); font-weight: 600; margin-bottom: 6px; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); font-size: 14px; color: var(--text-main); transition: 0.2s; outline: none; font-family: inherit;}
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 3px rgba(62, 166, 255, 0.15); }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 3px rgba(62, 166, 255, 0.15); }
 
         .primary-btn { background: linear-gradient(45deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .full-width { width: 100%; }
@@ -320,7 +320,7 @@
             <span class="material-symbols-rounded menu-btn" onclick="window.toggleSidebar()">menu</span>
             <div class="logo" onclick="window.goHome()">
                 <span class="material-symbols-rounded logo-icon">play_circle</span>
-                <span class="logo-text">CornHub</span>
+                <span class="logo-text">CORN-HUB</span>
             </div>
         </div>
         
@@ -552,6 +552,11 @@
                 <input type="text" id="up-url" placeholder="Paste link here...">
             </div>
             <div class="form-group">
+                <label>Category *</label>
+                <select id="up-category">
+                    </select>
+            </div>
+            <div class="form-group">
                 <label>Duration</label>
                 <input type="text" id="up-duration" placeholder="MM:SS">
             </div>
@@ -598,7 +603,6 @@
             messagingSenderId: "346908454601",
             appId: "1:346908454601:web:2f11946f82ac71773ba718"
         };
-        
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -638,7 +642,17 @@
                 document.getElementById('set-theme').value = 'dark';
             }
             renderCategories();
+            populateUploadCategories(); // Naya function dropdown bharne ke liye call kiya
         });
+
+        // Naya function jo 'All' ko chhod kar baaki categories select me dalega
+        const populateUploadCategories = () => {
+            const select = document.getElementById('up-category');
+            select.innerHTML = categories
+                .filter(c => c.name !== 'All')
+                .map(c => `<option value="${c.name}">${c.name}</option>`)
+                .join('');
+        };
 
         window.applyTheme = (val) => {
             if(val === 'dark') {
@@ -825,7 +839,8 @@
             if(cat === 'All') renderGrid(allVideos);
             else {
                 const filtered = Object.entries(allVideos).reduce((acc, [id, v]) => {
-                    if(v.title.toLowerCase().includes(cat.toLowerCase()) || (v.description && v.description.toLowerCase().includes(cat.toLowerCase()))) acc[id] = v;
+                    // Category exact match bhi check kiya, ya phir title/description filter purane jaise
+                    if((v.category && v.category === cat) || v.title.toLowerCase().includes(cat.toLowerCase()) || (v.description && v.description.toLowerCase().includes(cat.toLowerCase()))) acc[id] = v;
                     return acc;
                 }, {});
                 renderGrid(filtered);
@@ -1136,6 +1151,7 @@
             document.getElementById('up-title').value = '';
             document.getElementById('up-thumb').value = '';
             document.getElementById('up-url').value = '';
+            document.getElementById('up-category').selectedIndex = 0; // Upload par category reset kiya gaya
             document.getElementById('up-duration').value = '';
             document.getElementById('up-desc').value = '';
             document.getElementById('upload-title').innerText = 'Upload Video';
@@ -1154,6 +1170,7 @@
                 title, videoUrl,
                 thumbnail: document.getElementById('up-thumb').value || 'https://via.placeholder.com/300x168',
                 duration: document.getElementById('up-duration').value,
+                category: document.getElementById('up-category').value, // Category ka naya data include kiya
                 description: document.getElementById('up-desc').value,
                 uploader: user.displayName || user.email.split('@')[0],
                 uid: user.uid
@@ -1174,6 +1191,10 @@
             document.getElementById('up-title').value = v.title;
             document.getElementById('up-thumb').value = v.thumbnail;
             document.getElementById('up-url').value = v.videoUrl;
+            
+            // Edit me purana category select karega, default set
+            document.getElementById('up-category').value = v.category || categories[1].name; 
+            
             document.getElementById('up-duration').value = v.duration;
             document.getElementById('up-desc').value = v.description;
             document.getElementById('upload-title').innerText = 'Edit Video';
